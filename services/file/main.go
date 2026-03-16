@@ -15,7 +15,7 @@ type FileServer struct {
 }
 
 func main() {
-	lis, err := net.Listen("tcp", ":50051")
+	lis, err := net.Listen("tcp", "127.0.0.1:50051")
 	if err != nil {
 		log.Fatal("failed to listen: ", err)
 	}
