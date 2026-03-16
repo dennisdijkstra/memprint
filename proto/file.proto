@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package file;
+
+option go_package = "github.com/dennisdijkstra/memprint/proto/file";
+
+service FileService {
+  rpc UploadFile(UploadFileRequest) returns (UploadFileResponse);
+}
+
+message UploadFileRequest {
+  string user_id   = 1;
+  string filename  = 2;
+  bytes  content   = 3;
+}
+
+message UploadFileResponse {
+  string file_id   = 1;
+  string status    = 2;
+}
