@@ -1,6 +1,6 @@
 # WIP: Memprint Project
 
-Upload a file. Get back a poster made from its memory fingerprint
+Upload a file. Get back a poster made from its memory fingerprint.
 
 ## Tech Stack
 
@@ -11,8 +11,8 @@ Upload a file. Get back a poster made from its memory fingerprint
 
 ## Project Structure
 
-- `main.go` - placeholder application entrypoint
 - `services/file/main.go` - gRPC file service server
+- `services/file/db.go` - PostgreSQL connection helper
 - `proto/file.proto` - protobuf service contract
 - `proto/file/` - generated protobuf and gRPC Go files
 - `docker-compose.yml` - local infrastructure services
@@ -26,16 +26,17 @@ Upload a file. Get back a poster made from its memory fingerprint
 go mod download
 ```
 
-3. Run the file service:
-
-```bash
-go run services/file/main.go
-```
-
-4. (Optional) Start local infrastructure:
+3. Start local infrastructure:
 
 ```bash
 docker compose up -d
+```
+
+4. Copy the environment template, fill in values, and run the file service:
+
+```bash
+cp .env.example .env
+go run services/file/*.go
 ```
 
 ## Development
