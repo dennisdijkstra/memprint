@@ -13,6 +13,7 @@ Upload a file. Get back a poster made from its memory fingerprint.
 
 - `services/file/main.go` - gRPC file service server
 - `services/file/db.go` - PostgreSQL connection helper
+- `services/gateway/main.go` - HTTP API gateway
 - `proto/file.proto` - protobuf service contract
 - `proto/file/` - generated protobuf and gRPC Go files
 - `docker-compose.yml` - local infrastructure services
@@ -32,11 +33,12 @@ go mod download
 docker compose up -d
 ```
 
-4. Copy the environment template, fill in values, and run the file service:
+4. Copy the environment template, fill in values, and run services:
 
 ```bash
 cp .env.example .env
 go run services/file/*.go
+go run services/gateway/*.go
 ```
 
 ## Development
