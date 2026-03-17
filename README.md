@@ -1,4 +1,4 @@
-# Memprint Project
+# WIP: Memprint Project
 
 Upload a file. Get back a poster made from its memory fingerprint
 
