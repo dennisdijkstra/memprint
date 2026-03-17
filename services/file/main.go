@@ -2,9 +2,11 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net"
 	"os"
+	"time"
 
 	filepb "github.com/dennisdijkstra/memprint/proto/file"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -52,8 +54,21 @@ func main() {
 func (s *FileServer) UploadFile(ctx context.Context, req *filepb.UploadFileRequest) (*filepb.UploadFileResponse, error) {
 	log.Printf("received upload: user=%s, filename=%s, size=%d bytes", req.UserId, req.Filename, len(req.Content))
 
+	fileID := fmt.Sprintf("file_%d", time.Now().UnixNano())
+
+	_, err := s.db.Exec(ctx, `
+		INSERT INTO files (id, user_id, filename, status)
+        VALUES ($1, $2, $3, 'uploaded')
+	`, fileID, req.UserId, req.Filename)
+	if err != nil {
+		return nil, fmt.Errorf("insert file: %w", err)
+
+	}
+
+	log.Printf("saved file: id=%s, user=%s, filename=%s", fileID, req.UserId, req.Filename)
+
 	return &filepb.UploadFileResponse{
-		FileId: "file_001",
+		FileId: fileID,
 		Status: "uploaded",
 	}, nil
 }
