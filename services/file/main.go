@@ -56,7 +56,24 @@ func (s *FileServer) UploadFile(ctx context.Context, req *filepb.UploadFileReque
 
 	fileID := fmt.Sprintf("file_%d", time.Now().UnixNano())
 
-	_, err := s.db.Exec(ctx, `
+	tmpPath := fmt.Sprintf("/tmp/%s.bin", fileID)
+	f, err := os.OpenFile(tmpPath, os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return nil, fmt.Errorf("open tmp file: %w", err)
+	}
+
+	meta := captureMetadata(f.Fd())
+
+	if _, err = f.Write(req.Content); err != nil {
+		return nil, fmt.Errorf("write tmp file: %w", err)
+	}
+	f.Sync()
+	f.Close()
+	os.Remove(tmpPath)
+
+	log.Printf("metadata captured: %s", meta)
+
+	_, err = s.db.Exec(ctx, `
 		INSERT INTO files (id, user_id, filename, status)
         VALUES ($1, $2, $3, 'uploaded')
 	`, fileID, req.UserId, req.Filename)
