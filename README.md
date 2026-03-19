@@ -5,14 +5,16 @@ Upload a file. Get back a poster made from its memory fingerprint.
 ## Tech Stack
 
 - Go
-- gRPC
-- Protobuf
-- Docker Compose (PostgreSQL, RabbitMQ, Redis)
+- gRPC + Protobuf
+- HTTP gateway
+- PostgreSQL, RabbitMQ, Redis (via Docker Compose)
 
 ## Project Structure
 
 - `services/file/main.go` - gRPC file service server
 - `services/file/db.go` - PostgreSQL connection helper
+- `services/file/metadata.go` - memory metadata capture helpers
+- `services/file/rabbitmq.go` - RabbitMQ publisher for file events
 - `services/gateway/main.go` - HTTP API gateway
 - `proto/file.proto` - protobuf service contract
 - `proto/file/` - generated protobuf and gRPC Go files
@@ -33,7 +35,7 @@ go mod download
 docker compose up -d
 ```
 
-4. Copy the environment template, fill in values, and run services:
+4. Copy `.env.example` to `.env`, fill in the values, and run services:
 
 ```bash
 cp .env.example .env
