@@ -79,10 +79,33 @@ func (s *FileServer) UploadFile(ctx context.Context, req *filepb.UploadFileReque
 	`, fileID, req.UserId, req.Filename)
 	if err != nil {
 		return nil, fmt.Errorf("insert file: %w", err)
-
 	}
 
 	log.Printf("saved file: id=%s, user=%s, filename=%s", fileID, req.UserId, req.Filename)
+
+	_, err = s.db.Exec(ctx, `
+		INSERT INTO mem_metadata (
+			file_id, pid, tid, heap_addr, heap_size,
+			stack_offset, fd, nr_mmap, nr_write,
+			nr_fsync, nr_openat, captured_at
+		) VALUES (
+			$1, $2, $3, $4, $5,
+			$6, $7, $8, $9,
+			$10, $11, $12
+		)
+	`, fileID,
+		meta.PID, meta.TID,
+		meta.HeapAddr, meta.HeapSize,
+		meta.StackOffset, meta.FD,
+		meta.NRMmap, meta.NRWrite,
+		meta.NRFsync, meta.NROpenat,
+		meta.CapturedAt,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("insert metadata: %w", err)
+	}
+
+	log.Printf("saved metadata for file: %s", fileID)
 
 	return &filepb.UploadFileResponse{
 		FileId: fileID,
