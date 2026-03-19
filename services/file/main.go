@@ -18,6 +18,7 @@ import (
 type FileServer struct {
 	filepb.UnimplementedFileServiceServer
 	db *pgxpool.Pool
+	mq *RabbitMQ
 }
 
 func main() {
@@ -43,7 +44,17 @@ func main() {
 
 	srv := grpc.NewServer()
 	reflection.Register(srv)
-	filepb.RegisterFileServiceServer(srv, &FileServer{db: db})
+
+	mq, err := connectRabbitMQ(os.Getenv("RABBITMQ_URL"))
+	if err != nil {
+		log.Fatalf("connect rabbitmq: %v", err)
+	}
+	defer mq.close()
+
+	filepb.RegisterFileServiceServer(srv, &FileServer{
+		db: db,
+		mq: mq,
+	})
 
 	log.Printf("file service listening on :%s", port)
 	if err := srv.Serve(lis); err != nil {
@@ -106,6 +117,19 @@ func (s *FileServer) UploadFile(ctx context.Context, req *filepb.UploadFileReque
 	}
 
 	log.Printf("saved metadata for file: %s", fileID)
+
+	event := FileUploadedEvent{
+		FileID:    fileID,
+		UserID:    req.UserId,
+		Filename:  req.Filename,
+		Meta:      meta,
+		Timestamp: time.Now().UTC().Format(time.RFC3339),
+	}
+	if err := s.mq.publish(ctx, event); err != nil {
+		return nil, fmt.Errorf("publish event: %w", err)
+	}
+
+	log.Printf("published file.uploaded event for %s", fileID)
 
 	return &filepb.UploadFileResponse{
 		FileId: fileID,

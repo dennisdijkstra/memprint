@@ -12,6 +12,7 @@ type MemMetadata struct {
 	PID         int
 	TID         int
 	HeapAddr    uint64
+	HeapAddrHex string `json:"heap_addr_hex"`
 	HeapSize    uint64
 	StackOffset uint64
 	Checksum    uint32
@@ -34,6 +35,7 @@ func captureMetadata(fd uintptr) MemMetadata {
 		PID:         os.Getpid(),
 		TID:         os.Getpid(),
 		HeapAddr:    heapAddr,
+		HeapAddrHex: fmt.Sprintf("0x%08X", heapAddr),
 		HeapSize:    ms.HeapAlloc,
 		StackOffset: ms.StackInuse,
 		FD:          int(fd),
