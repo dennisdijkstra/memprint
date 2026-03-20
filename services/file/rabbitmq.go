@@ -6,20 +6,13 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/dennisdijkstra/memprint/shared/events"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 type RabbitMQ struct {
 	conn    *amqp.Connection
 	channel *amqp.Channel
-}
-
-type FileUploadedEvent struct {
-	FileID    string      `json:"file_id"`
-	UserID    string      `json:"user_id"`
-	Filename  string      `json:"filename"`
-	Meta      MemMetadata `json:"meta"`
-	Timestamp string      `json:"timestamp"`
 }
 
 func connectRabbitMQ(url string) (*RabbitMQ, error) {
@@ -34,7 +27,7 @@ func connectRabbitMQ(url string) (*RabbitMQ, error) {
 	}
 
 	_, err = ch.QueueDeclare(
-		"file.uploaded",
+		events.QueueFileUploaded,
 		true,
 		false,
 		false,
@@ -49,7 +42,7 @@ func connectRabbitMQ(url string) (*RabbitMQ, error) {
 	return &RabbitMQ{conn: conn, channel: ch}, nil
 }
 
-func (r *RabbitMQ) publish(ctx context.Context, event FileUploadedEvent) error {
+func (r *RabbitMQ) publish(ctx context.Context, event events.FileUploadedEvent) error {
 	body, err := json.Marshal(event)
 	if err != nil {
 		return fmt.Errorf("marshal event: %w", err)
@@ -57,7 +50,7 @@ func (r *RabbitMQ) publish(ctx context.Context, event FileUploadedEvent) error {
 
 	return r.channel.PublishWithContext(ctx,
 		"",
-		"file.uploaded",
+		events.QueueFileUploaded,
 		false,
 		false,
 		amqp.Publishing{

@@ -9,6 +9,7 @@ import (
 	"time"
 
 	filepb "github.com/dennisdijkstra/memprint/proto/file"
+	"github.com/dennisdijkstra/memprint/shared/events"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 	"google.golang.org/grpc"
@@ -118,7 +119,7 @@ func (s *FileServer) UploadFile(ctx context.Context, req *filepb.UploadFileReque
 
 	log.Printf("saved metadata for file: %s", fileID)
 
-	event := FileUploadedEvent{
+	event := events.FileUploadedEvent{
 		FileID:    fileID,
 		UserID:    req.UserId,
 		Filename:  req.Filename,
