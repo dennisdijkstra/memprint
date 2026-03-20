@@ -11,14 +11,21 @@ Upload a file. Get back a poster made from its memory fingerprint.
 
 ## Project Structure
 
-- `services/file/main.go` - gRPC file service server
-- `services/file/db.go` - PostgreSQL connection helper
-- `services/file/metadata.go` - memory metadata capture helpers
-- `services/file/rabbitmq.go` - RabbitMQ publisher for file events
-- `services/gateway/main.go` - HTTP API gateway
-- `proto/file.proto` - protobuf service contract
-- `proto/file/` - generated protobuf and gRPC Go files
-- `docker-compose.yml` - local infrastructure services
+```text
+.
+|- docker-compose.yml
+|- go.mod
+|- go.sum
+|- proto/
+|  |- file.proto
+|  `- file/                  # generated protobuf and gRPC code
+|- services/
+|  |- file/                  # file upload gRPC service
+|  |- gateway/               # HTTP API gateway
+|  `- render/                # poster rendering service
+`- shared/
+	`- events/                # shared event definitions
+```
 
 ## Getting Started
 
