@@ -44,7 +44,7 @@ func handleFileUploaded(body []byte) error {
 	log.Printf("render job started: file=%s pid=%d heap=%s",
 		event.FileID, event.Meta.PID, event.Meta.HeapAddrHex)
 
-	layout := buildLayout(event.Meta)
+	layout := makeLayout(event.Meta)
 	log.Printf("layout built: %d elements seed=%d", len(layout.Elements), layout.Seed)
 
 	for _, el := range layout.Elements {

@@ -24,7 +24,7 @@ type Layout struct {
 	Elements []LayoutElement
 }
 
-func buildLayout(meta events.MemMetadata) Layout {
+func makeLayout(meta events.MemMetadata) Layout {
 	rng := rand.New(rand.NewSource(int64(meta.PID)))
 
 	angle := func(max float64) float64 {
