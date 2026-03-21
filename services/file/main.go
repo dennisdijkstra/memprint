@@ -26,9 +26,10 @@ func main() {
 	log.Println("DATABASE_URL:", os.Getenv("DATABASE_URL"))
 
 	port := os.Getenv("FILE_SERVICE_PORT")
-	dbUrl := os.Getenv("DATABASE_URL")
+	dbURL := os.Getenv("DATABASE_URL")
+	rabbitMQURL := os.Getenv("RABBITMQ_URL")
 
-	db, err := connectDB(context.Background(), dbUrl)
+	db, err := connectDB(context.Background(), dbURL)
 	if err != nil {
 		log.Fatalf("connect to db: %v", err)
 	}
@@ -43,7 +44,7 @@ func main() {
 	srv := grpc.NewServer()
 	reflection.Register(srv)
 
-	mq, err := connectRabbitMQ(os.Getenv("RABBITMQ_URL"))
+	mq, err := connectRabbitMQ(rabbitMQURL)
 	if err != nil {
 		log.Fatalf("connect rabbitmq: %v", err)
 	}

@@ -21,10 +21,10 @@ func main() {
 	}
 
 	port := os.Getenv("GATEWAY_PORT")
-	fsAddr := os.Getenv("FILE_SERVICE_ADDR")
+	fsURL := os.Getenv("FILE_SERVICE_URL")
 
 	conn, err := grpc.Dial(
-		fsAddr,
+		fsURL,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {

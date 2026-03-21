@@ -14,7 +14,9 @@ func main() {
 		log.Println("no .env file found, reading from environment")
 	}
 
-	mq, err := connectRabbitMQ(os.Getenv("RABBITMQ_URL"))
+	rabbitMQURL := os.Getenv("RABBITMQ_URL")
+
+	mq, err := connectRabbitMQ(rabbitMQURL)
 	if err != nil {
 		log.Fatalf("connect rabbitmq: %v", err)
 	}
