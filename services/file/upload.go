@@ -27,9 +27,16 @@ func (s *FileServer) UploadFile(ctx context.Context, req *filepb.UploadFileReque
 	if _, err = f.Write(req.Content); err != nil {
 		return nil, fmt.Errorf("write tmp file: %w", err)
 	}
-	f.Sync()
-	f.Close()
-	os.Remove(tmpPath)
+	if err = f.Sync(); err != nil {
+		_ = f.Close()
+		return nil, fmt.Errorf("sync tmp file: %w", err)
+	}
+	if err = f.Close(); err != nil {
+		return nil, fmt.Errorf("close tmp file: %w", err)
+	}
+	if err = os.Remove(tmpPath); err != nil {
+		log.Printf("remove tmp file %s: %v", tmpPath, err)
+	}
 
 	log.Printf("metadata captured: %s", meta)
 

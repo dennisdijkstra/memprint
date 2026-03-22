@@ -63,9 +63,13 @@ func (r *RabbitMQ) publish(ctx context.Context, event events.FileUploadedEvent) 
 
 func (r *RabbitMQ) close() {
 	if r.channel != nil {
-		r.channel.Close()
+		if err := r.channel.Close(); err != nil {
+			log.Printf("close channel: %v", err)
+		}
 	}
 	if r.conn != nil {
-		r.conn.Close()
+		if err := r.conn.Close(); err != nil {
+			log.Printf("close connection: %v", err)
+		}
 	}
 }
