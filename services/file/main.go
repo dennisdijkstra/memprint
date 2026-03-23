@@ -23,7 +23,6 @@ func main() {
 	if err := godotenv.Load(); err != nil {
 		log.Println("no .env file found, reading from environment")
 	}
-	log.Println("DATABASE_URL:", os.Getenv("DATABASE_URL"))
 
 	port := os.Getenv("FILE_SERVICE_PORT")
 	dbURL := os.Getenv("DATABASE_URL")
