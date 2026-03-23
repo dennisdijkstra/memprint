@@ -24,7 +24,7 @@ func captureMetadata(fd uintptr) events.MemMetadata {
 		HeapAddrHex: fmt.Sprintf("0x%08X", heapAddr),
 		HeapSize:    ms.HeapAlloc,
 		StackOffset: ms.StackInuse,
-		FD:          int(fd),
+		FD:          int(fd), //#nosec G115 -- fd is a file descriptor, always within int range
 		NRMmap:      9,
 		NRWrite:     1,
 		NRFsync:     74,
