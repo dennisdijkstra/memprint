@@ -30,7 +30,11 @@ func main() {
 	if err != nil {
 		log.Fatalf("connect to file service: %v", err)
 	}
-	defer conn.Close()
+	defer func() {
+		if err := conn.Close(); err != nil {
+			log.Printf("closing gRPC connection: %v", err)
+		}
+	}()
 
 	gw := &Gateway{
 		fileClient: filepb.NewFileServiceClient(conn),
@@ -46,7 +50,4 @@ func main() {
 	if err := http.ListenAndServe(":"+port, mux); err != nil {
 		log.Fatal(err)
 	}
-
-	log.Printf("gateway listening on: %s", port)
-
 }

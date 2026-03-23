@@ -15,13 +15,19 @@ func (gw *Gateway) handleUpload(w http.ResponseWriter, r *http.Request) {
 
 	if err := r.ParseMultipartForm(32 << 20); err != nil {
 		http.Error(w, "invalid form", http.StatusBadRequest)
+		return
 	}
 
 	file, header, err := r.FormFile("file")
 	if err != nil {
 		http.Error(w, "missing file field", http.StatusBadRequest)
+		return
 	}
-	defer file.Close()
+	defer func() {
+		if err := file.Close(); err != nil {
+			log.Printf("closing upload file: %v", err)
+		}
+	}()
 
 	buf := make([]byte, header.Size)
 	if _, err := file.Read(buf); err != nil {
