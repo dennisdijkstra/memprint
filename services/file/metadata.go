@@ -15,7 +15,7 @@ func captureMetadata(fd uintptr) events.MemMetadata {
 	runtime.ReadMemStats(&ms)
 
 	sample := make([]byte, 1)
-	heapAddr := uint64(uintptr(unsafe.Pointer(&sample[0])))
+	heapAddr := uint64(uintptr(unsafe.Pointer(&sample[0]))) //#nosec G103 -- intentional heap address capture for memory metadata
 
 	return events.MemMetadata{
 		PID:         os.Getpid(),

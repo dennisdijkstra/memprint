@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	filepb "github.com/dennisdijkstra/memprint/proto/file"
 	"github.com/joho/godotenv"
@@ -46,8 +47,15 @@ func main() {
 		WriteJSON(w, http.StatusOK, map[string]any{"status": "ok"})
 	})
 
+	srv := &http.Server{
+		Addr:         ":" + port,
+		Handler:      mux,
+		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 30 * time.Second,
+	}
+
 	log.Printf("gateway listening on :%s", port)
-	if err := http.ListenAndServe(":"+port, mux); err != nil {
+	if err := srv.ListenAndServe(); err != nil {
 		log.Fatal(err)
 	}
 }

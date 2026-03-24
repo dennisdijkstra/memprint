@@ -16,11 +16,11 @@ func (s *FileServer) UploadFile(ctx context.Context, req *filepb.UploadFileReque
 
 	fileID := fmt.Sprintf("file_%d", time.Now().UnixNano())
 
-	tmpPath := fmt.Sprintf("/tmp/%s.bin", fileID)
-	f, err := os.OpenFile(tmpPath, os.O_CREATE|os.O_WRONLY, 0644)
+	f, err := os.CreateTemp("", "upload-*.bin")
 	if err != nil {
-		return nil, fmt.Errorf("open tmp file: %w", err)
+		return nil, fmt.Errorf("create tmp file: %w", err)
 	}
+	tmpPath := f.Name()
 
 	meta := captureMetadata(f.Fd())
 
