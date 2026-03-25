@@ -20,11 +20,16 @@ func handleFileUploaded(body []byte) error {
 	layout := makeLayout(event.Meta)
 	log.Printf("layout built: %d elements seed=%d", len(layout.Elements), layout.Seed)
 
-	for _, el := range layout.Elements {
-		log.Printf("  [%s] content=%q size=%.0f rotation=%.1f opacity=%.2f",
-			el.Effect, el.Content, el.Size, el.Rotation, el.Opacity)
+	dc, err := renderPoster(layout)
+	if err != nil {
+		return fmt.Errorf("render poster: %w", err)
 	}
 
-	log.Printf("render job done: file=%s", event.FileID)
+	outputPath := fmt.Sprintf("/tmp/poster_%s.png", event.FileID)
+	if err := dc.SavePNG(outputPath); err != nil {
+		return fmt.Errorf("save poster: %w", err)
+	}
+
+	log.Printf("poster saved: %s", outputPath)
 	return nil
 }
