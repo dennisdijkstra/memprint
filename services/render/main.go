@@ -22,7 +22,9 @@ func main() {
 	}
 	defer mq.close()
 
-	if err := mq.consume(handleFileUploaded); err != nil {
+	handler := &RenderHandler{mq: mq}
+
+	if err := mq.consume(handler.handleFileUploaded); err != nil {
 		log.Fatalf("consume: %v", err)
 	}
 

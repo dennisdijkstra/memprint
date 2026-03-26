@@ -1,6 +1,8 @@
 package main
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 
@@ -83,4 +85,28 @@ func (r *RabbitMQ) close() {
 			log.Printf("close connection: %v", err)
 		}
 	}
+}
+
+func (r *RabbitMQ) publish(ctx context.Context, queue string, payload any) error {
+	_, err := r.channel.QueueDeclare(queue, true, false, false, false, nil)
+	if err != nil {
+		return fmt.Errorf("declare queue: %w", err)
+	}
+
+	body, err := json.Marshal(payload)
+	if err != nil {
+		return fmt.Errorf("marshal payload: %w", err)
+	}
+
+	return r.channel.PublishWithContext(ctx,
+		"",
+		queue,
+		false,
+		false,
+		amqp.Publishing{
+			ContentType:  "application/json",
+			DeliveryMode: amqp.Persistent,
+			Body:         body,
+		},
+	)
 }
