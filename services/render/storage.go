@@ -31,7 +31,7 @@ func newStorage(ctx context.Context) (*Storage, error) {
 }
 
 func (s *Storage) uploadPoster(ctx context.Context, fileID, localPath string) (string, error) {
-	file, err := os.Open(localPath)
+	file, err := os.Open(localPath) //#nosec G304 -- localPath is built from internal fileID, not user input
 	if err != nil {
 		return "", fmt.Errorf("open poster: %w", err)
 	}

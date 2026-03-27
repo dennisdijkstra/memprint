@@ -46,7 +46,9 @@ func (h *RenderHandler) handleFileUploaded(body []byte) error {
 		return fmt.Errorf("upload poster: %w", err)
 	}
 
-	os.Remove(outputPath)
+	if err := os.Remove(outputPath); err != nil {
+		log.Printf("remove temp file: %v", err)
+	}
 
 	log.Printf("poster uploaded: %s", posterURL)
 

@@ -38,9 +38,13 @@ func (r *RabbitMQ) consume(queue string, handler func([]byte) error) error {
 		for msg := range msgs {
 			if err := handler(msg.Body); err != nil {
 				log.Printf("handler error: %v — requeuing", err)
-				msg.Nack(false, true)
+				if err := msg.Nack(false, true); err != nil {
+					log.Printf("nack error: %v", err)
+				}
 			} else {
-				msg.Ack(false)
+				if err := msg.Ack(false); err != nil {
+					log.Printf("ack error: %v", err)
+				}
 			}
 		}
 	}()
@@ -50,9 +54,13 @@ func (r *RabbitMQ) consume(queue string, handler func([]byte) error) error {
 
 func (r *RabbitMQ) close() {
 	if r.channel != nil {
-		r.channel.Close()
+		if err := r.channel.Close(); err != nil {
+			log.Printf("close channel error: %v", err)
+		}
 	}
 	if r.conn != nil {
-		r.conn.Close()
+		if err := r.conn.Close(); err != nil {
+			log.Printf("close connection error: %v", err)
+		}
 	}
 }
