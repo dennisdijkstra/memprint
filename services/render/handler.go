@@ -5,16 +5,21 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"github.com/dennisdijkstra/memprint/shared/events"
 )
 
 type RenderHandler struct {
-	mq *RabbitMQ
+	mq      *RabbitMQ
+	storage *Storage
 }
 
 func (h *RenderHandler) handleFileUploaded(body []byte) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+
 	var event events.FileUploadedEvent
 	if err := json.Unmarshal(body, &event); err != nil {
 		return fmt.Errorf("unmarshal event: %w", err)
@@ -36,7 +41,14 @@ func (h *RenderHandler) handleFileUploaded(body []byte) error {
 		return fmt.Errorf("save poster: %w", err)
 	}
 
-	log.Printf("poster saved: %s", outputPath)
+	posterURL, err := h.storage.uploadPoster(ctx, event.FileID, outputPath)
+	if err != nil {
+		return fmt.Errorf("upload poster: %w", err)
+	}
+
+	os.Remove(outputPath)
+
+	log.Printf("poster uploaded: %s", posterURL)
 
 	posterEvent := events.PosterReadyEvent{
 		FileID:    event.FileID,

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"os"
 	"os/signal"
@@ -22,7 +23,12 @@ func main() {
 	}
 	defer mq.close()
 
-	handler := &RenderHandler{mq: mq}
+	storage, err := newStorage(context.Background())
+	if err != nil {
+		log.Fatalf("connect storage: %v", err)
+	}
+
+	handler := &RenderHandler{mq: mq, storage: storage}
 
 	if err := mq.consume(handler.handleFileUploaded); err != nil {
 		log.Fatalf("consume: %v", err)

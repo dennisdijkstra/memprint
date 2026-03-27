@@ -32,7 +32,11 @@ func connectRabbitMQ(url string) (*RabbitMQ, error) {
 		false,
 		false,
 		false,
-		nil,
+		amqp.Table{
+			"x-dead-letter-exchange": "",
+			"x-message-ttl":          int32(30000), // 30 seconds
+			"x-delivery-limit":       int32(3),     // max 3 retries
+		},
 	)
 	if err != nil {
 		return nil, fmt.Errorf("declare queue: %w", err)
