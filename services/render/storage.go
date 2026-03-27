@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -48,12 +49,17 @@ func (s *Storage) uploadPoster(ctx context.Context, fileID, localPath string) (s
 		return "", fmt.Errorf("upload to s3: %w", err)
 	}
 
-	// return the S3 URL
-	url := fmt.Sprintf("https://%s.s3.%s.amazonaws.com/%s",
-		s.bucket,
-		os.Getenv("AWS_REGION"),
-		key,
+	presignClient := s3.NewPresignClient(s.client)
+	presigned, err := presignClient.PresignGetObject(ctx,
+		&s3.GetObjectInput{
+			Bucket: aws.String(s.bucket),
+			Key:    aws.String(key),
+		},
+		s3.WithPresignExpires(24*time.Hour),
 	)
+	if err != nil {
+		return "", fmt.Errorf("presign url: %w", err)
+	}
 
-	return url, nil
+	return presigned.URL, nil
 }
