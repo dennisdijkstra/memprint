@@ -53,14 +53,14 @@ API Gateway (:8080)
 │   ├── gateway/               # HTTP API gateway, rate limiting
 │   ├── file/                  # file upload, metadata capture
 │   ├── render/                # layout engine, poster rendering
-│   └── notification/          # email delivery via Resend
+│   └── notifications/         # email delivery via Resend
 └── shared/
     └── events/                # shared queue names + event types
 ```
 
 ## Getting Started
 
-1. Install Go 1.22+
+1. Install Go 1.25+
 2. Download dependencies:
 ```bash
 go mod download
@@ -94,10 +94,10 @@ go test ./...
 
 Run services individually (outside Docker):
 ```bash
-go run services/file/*.go
-go run services/gateway/main.go
-go run services/render/*.go
-go run services/notification/*.go
+go run ./services/file/
+go run ./services/gateway/
+go run ./services/render/
+go run ./services/notifications/
 ```
 
 Test the gRPC endpoint directly with grpcurl:
