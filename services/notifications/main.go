@@ -9,11 +9,16 @@ import (
 	"github.com/dennisdijkstra/memprint/shared/events"
 	"github.com/joho/godotenv"
 	amqp "github.com/rabbitmq/amqp091-go"
+	"github.com/resend/resend-go/v2"
 )
 
 type RabbitMQ struct {
 	conn    *amqp.Connection
 	channel *amqp.Channel
+}
+
+type NotificationHandler struct {
+	resend *resend.Client
 }
 
 func main() {
@@ -22,6 +27,9 @@ func main() {
 	}
 
 	rabbitMQURL := os.Getenv("RABBITMQ_URL")
+	if rabbitMQURL == "" {
+		log.Fatal("RABBITMQ_URL is not set")
+	}
 
 	mq, err := connectRabbitMQ(rabbitMQURL)
 	if err != nil {
@@ -29,7 +37,16 @@ func main() {
 	}
 	defer mq.close()
 
-	if err := mq.consume(events.QueuePosterReady, handlePosterReady); err != nil {
+	resendAPIKey := os.Getenv("RESEND_API_KEY")
+	if resendAPIKey == "" {
+		log.Fatal("RESEND_API_KEY is not set")
+	}
+
+	handler := &NotificationHandler{
+		resend: resend.NewClient(os.Getenv("RESEND_API_KEY")),
+	}
+
+	if err := mq.consume(events.QueuePosterReady, handler.handlePosterReady); err != nil {
 		log.Fatalf("consume: %v", err)
 	}
 

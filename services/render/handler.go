@@ -55,7 +55,8 @@ func (h *RenderHandler) handleFileUploaded(body []byte) error {
 	posterEvent := events.PosterReadyEvent{
 		FileID:    event.FileID,
 		UserID:    event.UserID,
-		PosterURL: outputPath,
+		JobID:     fmt.Sprintf("job_%d", time.Now().UnixNano()),
+		PosterURL: posterURL,
 		Timestamp: time.Now().UTC().Format(time.RFC3339),
 	}
 	if err := h.mq.publish(context.Background(), events.QueuePosterReady, posterEvent); err != nil {
