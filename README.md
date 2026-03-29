@@ -1,62 +1,108 @@
-# WIP: Memprint Project
+# Memprint
 
 Upload a file. Get back a poster made from its memory fingerprint.
+
+Every upload captures real runtime data from the Go process — heap addresses,
+PIDs, syscall numbers, file descriptors — and renders them into a unique
+typographic poster. No two posters are the same.
 
 ## Tech Stack
 
 - Go
 - gRPC + Protobuf
-- HTTP gateway
-- PostgreSQL, RabbitMQ, Redis (via Docker Compose)
+- RabbitMQ
+- PostgreSQL
+- Redis
+- AWS S3
+- Docker
+
+## Architecture
+```
+POST /upload
+     │
+     ▼ gRPC
+API Gateway (:8080)
+     │
+     └── File Service (:50051)
+               ├── captures PID, heap addr, syscalls, fd
+               ├── stores to PostgreSQL
+               └── publishes → file.uploaded (RabbitMQ)
+                                    │
+                                    ▼
+                            Render Service
+                               ├── builds layout from metadata
+                               ├── renders poster via gg canvas
+                               ├── uploads PNG to S3
+                               └── publishes → poster.ready (RabbitMQ)
+                                                    │
+                                                    ▼
+                                        Notification Service
+                                            └── sends email via Resend
+```
 
 ## Project Structure
-
-```text
+```
 .
-|- docker-compose.yml
-|- go.mod
-|- go.sum
-|- proto/
-|  |- file.proto
-|  `- file/                  # generated protobuf and gRPC code
-|- services/
-|  |- file/                  # file upload gRPC service
-|  |- gateway/               # HTTP API gateway
-|  `- render/                # poster rendering service
-`- shared/
-	`- events/                # shared event definitions
+├── docker-compose.yml
+├── go.mod
+├── go.sum
+├── proto/
+│   ├── file.proto
+│   └── file/                  # generated protobuf + gRPC stubs
+├── services/
+│   ├── gateway/               # HTTP API gateway, rate limiting
+│   ├── file/                  # file upload, metadata capture
+│   ├── render/                # layout engine, poster rendering
+│   └── notification/          # email delivery via Resend
+└── shared/
+    └── events/                # shared queue names + event types
 ```
 
 ## Getting Started
 
-1. Install Go 1.25+.
+1. Install Go 1.22+
 2. Download dependencies:
-
 ```bash
 go mod download
 ```
 
-3. Start local infrastructure:
-
-```bash
-docker compose up -d
-```
-
-4. Copy `.env.example` to `.env`, fill in the values, and run services:
-
+3. Copy `.env.example` to `.env` and fill in the values:
 ```bash
 cp .env.example .env
-go run services/file/*.go
-go run services/gateway/*.go
 ```
+
+4. Start everything:
+```bash
+docker compose up
+```
+
+5. Upload a file:
+```bash
+curl -X POST http://localhost:8080/upload \
+  -F "user_id=user_123" \
+  -F "file=@yourfile.png"
+```
+
+You'll receive an email with a link to your generated poster.
 
 ## Development
 
-- Run tests with `go test ./...`.
-- Test the gRPC endpoint with grpcurl:
+Run all tests:
+```bash
+go test ./...
+```
 
+Run services individually (outside Docker):
+```bash
+go run services/file/*.go
+go run services/gateway/main.go
+go run services/render/*.go
+go run services/notification/*.go
+```
+
+Test the gRPC endpoint directly with grpcurl:
 ```bash
 grpcurl -plaintext \
-	-d '{"user_id":"user-123","filename":"hello.txt","content":"aGVsbG8="}' \
-	127.0.0.1:50051 file.FileService/UploadFile
+  -d '{"user_id":"user_123","filename":"hello.txt","content":"aGVsbG8="}' \
+  127.0.0.1:50051 file.FileService/UploadFile
 ```
