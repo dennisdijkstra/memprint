@@ -13,6 +13,16 @@ func (gw *Gateway) handleUpload(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 30*time.Second)
 	defer cancel()
 
+	userID := r.FormValue("user_id")
+
+	isAllowed, err := gw.rateLimiter.isAllowed(ctx, userID)
+	if err != nil {
+		log.Printf("rate limiter error: %v", err)
+	} else if !isAllowed {
+		http.Error(w, "rate limit exceeded — max 10 uploads per minute", http.StatusTooManyRequests)
+		return
+	}
+
 	if err := r.ParseMultipartForm(32 << 20); err != nil {
 		http.Error(w, "invalid form", http.StatusBadRequest)
 		return

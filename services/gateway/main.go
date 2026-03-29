@@ -13,7 +13,8 @@ import (
 )
 
 type Gateway struct {
-	fileClient filepb.FileServiceClient
+	fileClient  filepb.FileServiceClient
+	rateLimiter *RateLimiter
 }
 
 func main() {
@@ -37,8 +38,15 @@ func main() {
 		}
 	}()
 
+	rateLimiter, err := newRateLimiter(os.Getenv("REDIS_URL"))
+	if err != nil {
+		log.Fatalf("connect redis: %v", err)
+	}
+	defer rateLimiter.close()
+
 	gw := &Gateway{
-		fileClient: filepb.NewFileServiceClient(conn),
+		fileClient:  filepb.NewFileServiceClient(conn),
+		rateLimiter: rateLimiter,
 	}
 
 	mux := http.NewServeMux()
