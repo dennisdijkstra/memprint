@@ -35,6 +35,7 @@ go.work.sum
 .idea/
 
 # Memprint specific
+services/render/fonts/
 tmp/
 *.png           # generated posters
 *.bin           # temp upload files
