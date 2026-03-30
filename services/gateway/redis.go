@@ -43,12 +43,16 @@ func (r *RateLimiter) isAllowed(ctx context.Context, userID string) (bool, error
 	}
 
 	if count == 1 {
-		r.client.Expire(ctx, key, r.window)
+		if err := r.client.Expire(ctx, key, r.window).Err(); err != nil {
+			return false, fmt.Errorf("set expiry: %w", err)
+		}
 	}
 
 	return count <= int64(r.limit), nil
 }
 
 func (r *RateLimiter) close() {
-	r.client.Close()
+	if err := r.client.Close(); err != nil {
+		log.Printf("close redis client: %v", err)
+	}
 }

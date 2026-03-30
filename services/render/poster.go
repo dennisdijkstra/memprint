@@ -96,9 +96,9 @@ func effectColour(effect string) (float64, float64, float64) {
 
 func loadFont(dc *gg.Context, size float64) error {
 	fonts := []string{
-		"./fonts/SFNSMono.ttf",                                          // Docker (bundled)
-		"/System/Library/Fonts/SFNSMono.ttf",                           // macOS local
-		"/usr/share/fonts/truetype/freefont/FreeMono.ttf",              // Alpine fallback
+		"./fonts/SFNSMono.ttf",                            // Docker (bundled)
+		"/System/Library/Fonts/SFNSMono.ttf",              // macOS local
+		"/usr/share/fonts/truetype/freefont/FreeMono.ttf", // Alpine fallback
 	}
 
 	for _, path := range fonts {
