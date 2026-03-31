@@ -4,26 +4,29 @@ import (
 	"fmt"
 	"math"
 
+	"github.com/dennisdijkstra/memprint/shared/events"
 	"github.com/fogleman/gg"
 )
 
 const posterWidth = 400
 const posterHeight = 600
 
-func renderPoster(layout Layout) (*gg.Context, error) {
+func renderPoster(layout Layout, meta events.MemMetadata) (*gg.Context, error) {
 	dc := gg.NewContext(posterWidth, posterHeight)
 
-	// dark background
-	dc.SetHexColor("#080808")
+	// paper background
+	dc.SetHexColor("#EDEAE2")
 	dc.Clear()
 
+	// layer 1 — journey diagram
+	drawJourneyDiagram(dc, meta)
+
+	// layer 2 — linocut typography on top
 	for _, el := range layout.Elements {
 		if err := drawElement(dc, el); err != nil {
 			return nil, fmt.Errorf("draw element %q: %w", el.Content, err)
 		}
 	}
-
-	drawFooter(dc)
 
 	return dc, nil
 }
@@ -54,21 +57,20 @@ func drawElement(dc *gg.Context, el LayoutElement) error {
 }
 
 func drawAberration(dc *gg.Context, el LayoutElement) {
-	// red layer offset left
-	dc.SetRGBA(1, 0, 0.24, el.Opacity*0.75)
+	// red layer
+	dc.SetRGBA(0.8, 0, 0.15, el.Opacity*0.75)
 	dc.DrawStringAnchored(el.Content, -8, 0, 0.5, 0.5)
 	dc.Fill()
 
-	// blue layer offset right
-	dc.SetRGBA(0, 0.81, 1, el.Opacity*0.75)
+	// blue layer
+	dc.SetRGBA(0, 0, 0.8, el.Opacity*0.75)
 	dc.DrawStringAnchored(el.Content, 8, 6, 0.5, 0.5)
 	dc.Fill()
 
-	// white master on top
-	dc.SetRGBA(0.94, 0.94, 0.94, el.Opacity)
+	// black master on top
+	dc.SetRGBA(0.07, 0.07, 0.07, el.Opacity)
 	dc.DrawStringAnchored(el.Content, 0, 0, 0.5, 0.5)
 	dc.Fill()
-
 }
 
 func drawPlain(dc *gg.Context, el LayoutElement) {
@@ -80,25 +82,25 @@ func drawPlain(dc *gg.Context, el LayoutElement) {
 func effectColour(effect string) (float64, float64, float64) {
 	switch effect {
 	case "pool":
-		return 1, 1, 1
+		return 0.07, 0.07, 0.07 // near black
 	case "drag":
-		return 0.90, 0.90, 0.90
+		return 0.1, 0.1, 0.1
 	case "melt":
-		return 0.85, 0.85, 0.85
+		return 0.08, 0.08, 0.08
 	case "ghost":
-		return 0.80, 0.80, 0.80
+		return 0.15, 0.15, 0.15
 	case "warp":
-		return 0.94, 0.94, 0.94
+		return 0.07, 0.07, 0.07
 	default:
-		return 1, 1, 1
+		return 0.07, 0.07, 0.07
 	}
 }
 
 func loadFont(dc *gg.Context, size float64) error {
 	fonts := []string{
-		"./fonts/SFNSMono.ttf",                            // Docker (bundled)
-		"/System/Library/Fonts/SFNSMono.ttf",              // macOS local
-		"/usr/share/fonts/truetype/freefont/FreeMono.ttf", // Alpine fallback
+		"./fonts/SpecialElite-Regular.ttf", // Docker + local
+		"services/render/fonts/SpecialElite-Regular.ttf",
+		"/System/Library/Fonts/SFNSMono.ttf", // fallback
 	}
 
 	for _, path := range fonts {
@@ -106,7 +108,6 @@ func loadFont(dc *gg.Context, size float64) error {
 			return nil
 		}
 	}
-
 	return fmt.Errorf("no usable font found")
 }
 

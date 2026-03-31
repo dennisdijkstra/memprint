@@ -5,7 +5,7 @@ import (
 )
 
 func TestCaptureMetadata(t *testing.T) {
-	meta := captureMetadata(9)
+	meta := captureMetadata(9, []byte("test content"))
 
 	// check exact values — syscall numbers are constants, always known
 	t.Run("exact values", func(t *testing.T) {
@@ -40,6 +40,7 @@ func TestCaptureMetadata(t *testing.T) {
 			{"HeapAddr is set", meta.HeapAddr > 0},
 			{"HeapSize is set", meta.HeapSize > 0},
 			{"CapturedAt is set", meta.CapturedAt != ""},
+			{"Checksum is set", meta.Checksum != 0},
 		}
 
 		for _, tt := range present {

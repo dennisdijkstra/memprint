@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"hash/crc32"
 	"os"
 	"runtime"
 	"time"
@@ -10,7 +11,7 @@ import (
 	"github.com/dennisdijkstra/memprint/shared/events"
 )
 
-func captureMetadata(fd uintptr) events.MemMetadata {
+func captureMetadata(fd uintptr, content []byte) events.MemMetadata {
 	var ms runtime.MemStats
 	runtime.ReadMemStats(&ms)
 
@@ -29,6 +30,7 @@ func captureMetadata(fd uintptr) events.MemMetadata {
 		NRWrite:     1,
 		NRFsync:     74,
 		NROpenat:    257,
+		Checksum:    crc32.ChecksumIEEE(content),
 		CapturedAt:  time.Now().UTC().Format(time.RFC3339),
 	}
 }

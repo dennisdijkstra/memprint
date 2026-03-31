@@ -31,7 +31,7 @@ func (h *RenderHandler) handleFileUploaded(body []byte) error {
 	layout := makeLayout(event.Meta)
 	log.Printf("layout built: %d elements seed=%d", len(layout.Elements), layout.Seed)
 
-	dc, err := renderPoster(layout)
+	dc, err := renderPoster(layout, event.Meta)
 	if err != nil {
 		return fmt.Errorf("render poster: %w", err)
 	}

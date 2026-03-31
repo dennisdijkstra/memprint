@@ -43,6 +43,7 @@ type MemMetadata struct {
 	NRWrite     int    `json:"NRWrite"`
 	NRFsync     int    `json:"NRFsync"`
 	NROpenat    int    `json:"NROpenat"`
+	Checksum    uint32 `json:"checksum"`
 	CapturedAt  string `json:"CapturedAt"`
 }
 

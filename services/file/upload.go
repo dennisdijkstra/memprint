@@ -22,7 +22,7 @@ func (s *FileServer) UploadFile(ctx context.Context, req *filepb.UploadFileReque
 	}
 	tmpPath := f.Name()
 
-	meta := captureMetadata(f.Fd())
+	meta := captureMetadata(f.Fd(), req.Content)
 
 	if _, err = f.Write(req.Content); err != nil {
 		return nil, fmt.Errorf("write tmp file: %w", err)
