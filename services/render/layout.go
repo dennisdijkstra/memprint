@@ -25,7 +25,7 @@ type Layout struct {
 }
 
 func makeLayout(meta events.MemMetadata) Layout {
-	rng := rand.New(rand.NewSource(int64(meta.PID)))
+	rng := rand.New(rand.NewSource(int64(meta.PID))) //#nosec G404 -- math/rand intentional, used for non-security shuffle
 
 	angle := func(max float64) float64 {
 		return (rng.Float64()*2 - 1) * max

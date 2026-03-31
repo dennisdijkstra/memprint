@@ -19,7 +19,9 @@ func renderPoster(layout Layout, meta events.MemMetadata) (*gg.Context, error) {
 	dc.Clear()
 
 	// layer 1 — journey diagram
-	drawJourneyDiagram(dc, meta)
+	if err := drawJourneyDiagram(dc, meta); err != nil {
+		return nil, fmt.Errorf("draw journey diagram: %w", err)
+	}
 
 	// layer 2 — linocut typography on top
 	for _, el := range layout.Elements {
