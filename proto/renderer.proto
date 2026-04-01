@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package renderer;
+
+option go_package = "github.com/dennisdijkstra/memprint/proto/renderer";
+
+service RendererService {
+  rpc RenderPoster(RenderRequest) returns (RenderResponse);
+}
+
+message RenderRequest {
+  int32  pid        = 1;
+  int32  tid        = 2;
+  uint64 heap_addr  = 3;
+  uint64 heap_size  = 4;
+  int32  fd         = 5;
+  int32  nr_openat  = 6;
+  int32  nr_mmap    = 7;
+  int32  nr_write   = 8;
+  int32  nr_fsync   = 9;
+  uint32 checksum   = 10;
+  string palette    = 11;
+  int32  wave       = 12;
+  int32  distortion = 13;
+  int32  grain      = 14;
+  int32  border     = 15;
+}
+
+message RenderResponse {
+  bytes  png_data = 1;
+  string error    = 2;
+}
