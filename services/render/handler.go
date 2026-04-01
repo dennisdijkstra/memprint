@@ -12,8 +12,9 @@ import (
 )
 
 type RenderHandler struct {
-	mq      *RabbitMQ
-	storage *Storage
+	mq       *RabbitMQ
+	storage  *Storage
+	renderer *RendererClient
 }
 
 func (h *RenderHandler) handleFileUploaded(body []byte) error {
@@ -28,19 +29,21 @@ func (h *RenderHandler) handleFileUploaded(body []byte) error {
 	log.Printf("render job started: file=%s pid=%d heap=%s",
 		event.FileID, event.Meta.PID, event.Meta.HeapAddrHex)
 
-	layout := makeLayout(event.Meta)
-	log.Printf("layout built: %d elements seed=%d", len(layout.Elements), layout.Seed)
-
-	dc, err := renderPoster(layout, event.Meta)
+	// call Node renderer via gRPC
+	pngBytes, err := h.renderer.render(ctx, event.Meta)
 	if err != nil {
-		return fmt.Errorf("render poster: %w", err)
+		return fmt.Errorf("render: %w", err)
 	}
 
+	log.Printf("poster rendered: %dB", len(pngBytes))
+
+	// save to tmp
 	outputPath := fmt.Sprintf("/tmp/poster_%s.png", event.FileID)
-	if err := dc.SavePNG(outputPath); err != nil {
-		return fmt.Errorf("save poster: %w", err)
+	if err := os.WriteFile(outputPath, pngBytes, 0644); err != nil {
+		return fmt.Errorf("write poster: %w", err)
 	}
 
+	// upload to S3
 	posterURL, err := h.storage.uploadPoster(ctx, event.FileID, outputPath)
 	if err != nil {
 		return fmt.Errorf("upload poster: %w", err)
@@ -52,6 +55,7 @@ func (h *RenderHandler) handleFileUploaded(body []byte) error {
 
 	log.Printf("poster uploaded: %s", posterURL)
 
+	// publish poster.ready
 	posterEvent := events.PosterReadyEvent{
 		FileID:    event.FileID,
 		UserID:    event.UserID,

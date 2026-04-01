@@ -36,6 +36,7 @@ go.work.sum
 
 # Memprint specific
 services/render/fonts/
+services/renderer/node_modules/
 tmp/
 *.png           # generated posters
 *.bin           # temp upload files

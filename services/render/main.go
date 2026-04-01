@@ -28,7 +28,16 @@ func main() {
 		log.Fatalf("connect storage: %v", err)
 	}
 
-	handler := &RenderHandler{mq: mq, storage: storage}
+	renderer, err := newRendererClient()
+	if err != nil {
+		log.Fatalf("connect renderer: %v", err)
+	}
+
+	handler := &RenderHandler{
+		mq:       mq,
+		storage:  storage,
+		renderer: renderer,
+	}
 
 	if err := mq.consume(handler.handleFileUploaded); err != nil {
 		log.Fatalf("consume: %v", err)
