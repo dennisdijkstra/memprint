@@ -39,7 +39,7 @@ func (h *RenderHandler) handleFileUploaded(body []byte) error {
 
 	// save to tmp
 	outputPath := fmt.Sprintf("/tmp/poster_%s.png", event.FileID)
-	if err := os.WriteFile(outputPath, pngBytes, 0644); err != nil {
+	if err := os.WriteFile(outputPath, pngBytes, 0600); err != nil {
 		return fmt.Errorf("write poster: %w", err)
 	}
 

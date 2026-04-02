@@ -15,6 +15,19 @@ type RendererClient struct {
 	client rendererpb.RendererServiceClient
 }
 
+func toInt32(name string, v int) (int32, error) {
+	const (
+		minInt32 = -1 << 31
+		maxInt32 = 1<<31 - 1
+	)
+
+	if v < minInt32 || v > maxInt32 {
+		return 0, fmt.Errorf("%s out of int32 range: %d", name, v)
+	}
+
+	return int32(v), nil
+}
+
 func newRendererClient() (*RendererClient, error) {
 	addr := os.Getenv("RENDERER_SERVICE_ADDR")
 	if addr == "" {
@@ -34,17 +47,52 @@ func newRendererClient() (*RendererClient, error) {
 }
 
 func (r *RendererClient) render(ctx context.Context, meta events.MemMetadata) ([]byte, error) {
+	pid, err := toInt32("PID", meta.PID)
+	if err != nil {
+		return nil, fmt.Errorf("build render request: %w", err)
+	}
+
+	tid, err := toInt32("TID", meta.TID)
+	if err != nil {
+		return nil, fmt.Errorf("build render request: %w", err)
+	}
+
+	fd, err := toInt32("FD", meta.FD)
+	if err != nil {
+		return nil, fmt.Errorf("build render request: %w", err)
+	}
+
+	nrOpenat, err := toInt32("NROpenat", meta.NROpenat)
+	if err != nil {
+		return nil, fmt.Errorf("build render request: %w", err)
+	}
+
+	nrMmap, err := toInt32("NRMmap", meta.NRMmap)
+	if err != nil {
+		return nil, fmt.Errorf("build render request: %w", err)
+	}
+
+	nrWrite, err := toInt32("NRWrite", meta.NRWrite)
+	if err != nil {
+		return nil, fmt.Errorf("build render request: %w", err)
+	}
+
+	nrFsync, err := toInt32("NRFsync", meta.NRFsync)
+	if err != nil {
+		return nil, fmt.Errorf("build render request: %w", err)
+	}
+
 	req := &rendererpb.RenderRequest{
-		Pid:        int32(meta.PID),
-		Tid:        int32(meta.TID),
-		HeapAddr:   meta.HeapAddr,
-		HeapSize:   meta.HeapSize,
-		Fd:         int32(meta.FD),
-		NrOpenat:   int32(meta.NROpenat),
-		NrMmap:     int32(meta.NRMmap),
-		NrWrite:    int32(meta.NRWrite),
-		NrFsync:    int32(meta.NRFsync),
-		Checksum:   meta.Checksum,
+		Pid:      pid,
+		Tid:      tid,
+		HeapAddr: meta.HeapAddr,
+		HeapSize: meta.HeapSize,
+		Fd:       fd,
+		NrOpenat: nrOpenat,
+		NrMmap:   nrMmap,
+		NrWrite:  nrWrite,
+		NrFsync:  nrFsync,
+		Checksum: meta.Checksum,
 	}
 
 	resp, err := r.client.RenderPoster(ctx, req)
