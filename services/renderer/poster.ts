@@ -74,7 +74,7 @@ export async function renderPoster(meta: RenderMeta): Promise<Buffer> {
   const distAmt  = 7 * S   // scale displacement strength with resolution
   const grainAmt = 3        // brightness delta — resolution-independent
   const b        = 42 * S  // border thickness
-  const palette  = PALETTES.ink
+  const palette  = PALETTES.red
 
   const noise = new PerlinNoise(meta.pid)
 
@@ -135,12 +135,25 @@ function applyGrain(ctx: CanvasRenderingContext2D, b: number, amt: number, rando
 }
 
 function applyBorderGrain(ctx: CanvasRenderingContext2D, b: number, seed: number): void {
-  // deterministic hash — returns 0..1
-  function hash(x: number, y: number, salt = 0): number {
-    let n = (x * 1664525 ^ y * 1013904223 ^ seed ^ salt) & 0xffffffff
+  // per-pixel hash — returns 0..1, no spatial correlation
+  function hash(x: number, y: number): number {
+    let n = (x * 1664525 ^ y * 1013904223 ^ seed) & 0xffffffff
     n = Math.imul(n ^ (n >>> 16), 0x45d9f3b) & 0xffffffff
     n = Math.imul(n ^ (n >>> 16), 0x45d9f3b) & 0xffffffff
     return (n >>> 0) / 0xffffffff
+  }
+
+  // value noise — smoothstep-interpolated hash, non-repeating and organic
+  function valueNoise(x: number, y: number, scale: number): number {
+    const sx = x / scale, sy = y / scale
+    const ix = Math.floor(sx), iy = Math.floor(sy)
+    const fx = sx - ix, fy = sy - iy
+    const ux = fx * fx * (3 - 2 * fx)  // smoothstep
+    const uy = fy * fy * (3 - 2 * fy)
+    return hash(ix,   iy  ) * (1-ux) * (1-uy)
+         + hash(ix+1, iy  ) * ux     * (1-uy)
+         + hash(ix,   iy+1) * (1-ux) * uy
+         + hash(ix+1, iy+1) * ux     * uy
   }
 
   const strips = [
@@ -157,23 +170,24 @@ function applyBorderGrain(ctx: CanvasRenderingContext2D, b: number, seed: number
       const pixIdx = i / 4
       const px = strip.x + (pixIdx % strip.w)
       const py = strip.y + Math.floor(pixIdx / strip.w)
-
       const lx = (px / S) | 0
       const ly = (py / S) | 0
 
-      // coarse pores (~4 logical px) — simulates ink not reaching substrate
-      const pore = hash((lx / 4) | 0, (ly / 4) | 0, 1)
-      // fine speckle (1 logical px) — adds micro-texture within pores
-      const speck = hash(lx, ly, 2)
+      // Two octaves of value noise for organic, non-repeating density variation
+      const coarse = valueNoise(lx, ly, 10)   // large clusters
+      const medium = valueNoise(lx, ly, 4)    // smaller variation
+      const organic = coarse * 0.6 + medium * 0.4
 
-      let g: number
-      if (pore > 0.55) {
-        // ink dropout zone — fully bleached out, near-white
-        g = 90 + speck * 140
-      } else {
-        // inked zone — occasional fine bright speck only
-        g = speck > 0.82 ? speck * 90 : 0
-      }
+      // Per-pixel hash for fine grain detail
+      const fine = hash(lx, ly)
+
+      // Mostly hash-driven so it reads as random, organic shapes the clustering
+      const combined = organic * 0.25 + fine * 0.75
+
+      const threshold = 0.80
+      const g = combined > threshold
+        ? Math.pow((combined - threshold) / (1 - threshold), 1.4) * 120
+        : 0
 
       d[i]   = Math.min(255, d[i]   + g)
       d[i+1] = Math.min(255, d[i+1] + g)
