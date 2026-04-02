@@ -54,12 +54,25 @@ class PerlinNoise {
   }
 }
 
-const PALETTES: Record<string, PaletteConfig> = {
-  ink:      { border:[17,17,17],    paper:[237,234,226], ink:[17,17,17],    diag:[17,17,17] },
-  inverted: { border:[237,234,226], paper:[17,17,17],    ink:[237,234,226], diag:[237,234,226] },
-  red:      { border:[192,38,38],   paper:[255,248,235], ink:[192,38,38],   diag:[192,38,38] },
-  navy:     { border:[18,42,90],    paper:[255,248,235], ink:[18,42,90],    diag:[192,38,38], accent:[192,38,38] },
-  forest:   { border:[30,60,40],    paper:[245,238,218], ink:[30,60,40],    diag:[180,100,20], accent:[180,100,20] },
+const PAPER: [number, number, number] = [250, 246, 235]
+
+function hslToRgb(h: number, s: number, l: number): [number, number, number] {
+  s /= 100; l /= 100
+  const a = s * Math.min(l, 1 - l)
+  const f = (n: number) => { const k = (n + h / 30) % 12; return l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1)) }
+  return [Math.round(f(0) * 255), Math.round(f(8) * 255), Math.round(f(4) * 255)]
+}
+
+// Mix all metadata fields into one deterministic seed — unique per uploaded file
+function hashMix(...vals: number[]): number {
+  let h = 0x811c9dc5
+  for (const v of vals) {
+    for (let shift = 0; shift < 32; shift += 8) {
+      h ^= (v >>> shift) & 0xff
+      h = Math.imul(h, 0x01000193) & 0xffffffff
+    }
+  }
+  return h >>> 0
 }
 
 function rgb(arr: [number, number, number], alpha = 1): string {
@@ -70,11 +83,25 @@ export async function renderPoster(meta: RenderMeta): Promise<Buffer> {
   const canvas = createCanvas(W, H)
   const ctx = canvas.getContext('2d')
 
-  const waveAmt  = 6 * S   // scale wave amplitude with resolution
-  const distAmt  = 7 * S   // scale displacement strength with resolution
-  const grainAmt = 3        // brightness delta — resolution-independent
-  const b        = 42 * S  // border thickness
-  const palette  = PALETTES.red
+  const masterSeed = hashMix(
+    meta.pid, meta.tid, Number(meta.heap_addr),
+    meta.checksum, meta.fd,
+    meta.nr_openat, meta.nr_mmap, meta.nr_write, meta.nr_fsync
+  )
+  function derive(salt: number): number {
+    let n = (masterSeed ^ Math.imul(salt, 2654435761)) & 0xffffffff
+    n = Math.imul(n ^ (n >>> 16), 0x45d9f3b) & 0xffffffff
+    n = Math.imul(n ^ (n >>> 16), 0x45d9f3b) & 0xffffffff
+    return (n >>> 0) / 0xffffffff
+  }
+
+  const inkColor = hslToRgb((meta.checksum * 137.508) % 360, 70, 30)
+  const palette: PaletteConfig = { border: inkColor, paper: PAPER, ink: inkColor, diag: inkColor }
+
+  const waveAmt  = (3 + derive(2) * 9)  * S
+  const distAmt  = (4 + derive(3) * 10) * S
+  const grainAmt = 2 + derive(4) * 5
+  const b        = 42 * S
 
   const noise = new PerlinNoise(meta.pid)
 
@@ -99,7 +126,7 @@ export async function renderPoster(meta: RenderMeta): Promise<Buffer> {
   drawDiagram(ctx, meta, b, waveAmt, palette, noise)
 
   // ── typography ──
-  await drawTypography(ctx, meta, b, distAmt, palette, noise, random)
+  await drawTypography(ctx, meta, b, distAmt, palette, noise, random, derive)
 
   // ── border overlay ──
   ctx.fillStyle = rgb(palette.border)
@@ -109,7 +136,7 @@ export async function renderPoster(meta: RenderMeta): Promise<Buffer> {
   ctx.fillRect(W-b, 0, b, H)
 
   // ── border grain ──
-  applyBorderGrain(ctx, b, meta.pid)
+  applyBorderGrain(ctx, b, masterSeed)
 
   // ── wavy inner border edge ──
   ctx.strokeStyle = rgb(palette.border)
@@ -341,8 +368,8 @@ function drawDiagram(ctx: CanvasRenderingContext2D, meta: RenderMeta, b: number,
   )
 }
 
-async function drawTypography(ctx: CanvasRenderingContext2D, meta: RenderMeta, b: number, distAmt: number, palette: PaletteConfig, noise: PerlinNoise, random: (min?: number, max?: number) => number): Promise<void> {
-  const ns = 0.013/S  // halved to maintain same visual frequency at higher resolution
+async function drawTypography(ctx: CanvasRenderingContext2D, meta: RenderMeta, b: number, distAmt: number, palette: PaletteConfig, noise: PerlinNoise, random: (min?: number, max?: number) => number, derive: (salt: number) => number): Promise<void> {
+  const ns = 0.013/S
   const yo = b - 8*S
   const ink = palette.ink
   const acc = palette.accent ?? palette.ink
@@ -365,15 +392,17 @@ async function drawTypography(ctx: CanvasRenderingContext2D, meta: RenderMeta, b
       y:458*S+yo, size:36*S, str:distAmt*3.8, ns:ns*0.9, seed:0.7, col:ink },
     { text:`NR:${meta.nr_fsync}·FSYNC`,
       y:504*S+yo, size:34*S, str:distAmt*5.0, ns:ns*0.8, seed:0.8, col:acc },
-    { text:`G#${meta.pid+1}·G#${meta.pid+2}·G#${meta.pid+3}`,
+    { text:`G#${Math.round(derive(400)*9999)}·G#${Math.round(derive(401)*9999)}·G#${Math.round(derive(402)*9999)}`,
       y:544*S+yo, size:26*S, str:distAmt*2.4, ns:ns,     seed:0.9, col:ink },
-    { text:`${Math.round(Number(meta.heap_size)/1024)}KB·CHECKSUM·32B`,
+    { text:`${meta.checksum.toString(16).toUpperCase().padStart(8,'0')}·${Math.round(Number(meta.heap_size)/1024)}KB`,
       y:578*S+yo, size:19*S, str:distAmt*4.5, ns:ns*0.8, seed:1.0, col:ink },
   ]
 
-  for (const el of elements) {
-    displacedText(ctx, el.text, b+4*S, el.y, el.size, el.str, el.ns, el.seed, el.col, noise)
-  }
+  elements.forEach((el, i) => {
+    const yJitter = (derive(200 + i) - 0.5) * 16 * S
+    const sizeMul = 0.85 + derive(300 + i) * 0.30
+    displacedText(ctx, el.text, b+4*S, el.y + yJitter, el.size * sizeMul, el.str, el.ns, el.seed, el.col, noise)
+  })
 
   // press line
   for (let x = b; x < W-b; x++) {
