@@ -7,12 +7,11 @@
 package renderer
 
 import (
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
-
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
 
 const (
@@ -34,11 +33,6 @@ type RenderRequest struct {
 	NrWrite       int32                  `protobuf:"varint,8,opt,name=nr_write,json=nrWrite,proto3" json:"nr_write,omitempty"`
 	NrFsync       int32                  `protobuf:"varint,9,opt,name=nr_fsync,json=nrFsync,proto3" json:"nr_fsync,omitempty"`
 	Checksum      uint32                 `protobuf:"varint,10,opt,name=checksum,proto3" json:"checksum,omitempty"`
-	Palette       string                 `protobuf:"bytes,11,opt,name=palette,proto3" json:"palette,omitempty"`
-	Wave          int32                  `protobuf:"varint,12,opt,name=wave,proto3" json:"wave,omitempty"`
-	Distortion    int32                  `protobuf:"varint,13,opt,name=distortion,proto3" json:"distortion,omitempty"`
-	Grain         int32                  `protobuf:"varint,14,opt,name=grain,proto3" json:"grain,omitempty"`
-	Border        int32                  `protobuf:"varint,15,opt,name=border,proto3" json:"border,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -143,41 +137,6 @@ func (x *RenderRequest) GetChecksum() uint32 {
 	return 0
 }
 
-func (x *RenderRequest) GetPalette() string {
-	if x != nil {
-		return x.Palette
-	}
-	return ""
-}
-
-func (x *RenderRequest) GetWave() int32 {
-	if x != nil {
-		return x.Wave
-	}
-	return 0
-}
-
-func (x *RenderRequest) GetDistortion() int32 {
-	if x != nil {
-		return x.Distortion
-	}
-	return 0
-}
-
-func (x *RenderRequest) GetGrain() int32 {
-	if x != nil {
-		return x.Grain
-	}
-	return 0
-}
-
-func (x *RenderRequest) GetBorder() int32 {
-	if x != nil {
-		return x.Border
-	}
-	return 0
-}
-
 type RenderResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	PngData       []byte                 `protobuf:"bytes,1,opt,name=png_data,json=pngData,proto3" json:"png_data,omitempty"`
@@ -234,7 +193,7 @@ var File_proto_renderer_proto protoreflect.FileDescriptor
 
 const file_proto_renderer_proto_rawDesc = "" +
 	"\n" +
-	"\x14proto/renderer.proto\x12\brenderer\"\x81\x03\n" +
+	"\x14proto/renderer.proto\x12\brenderer\"\x85\x02\n" +
 	"\rRenderRequest\x12\x10\n" +
 	"\x03pid\x18\x01 \x01(\x05R\x03pid\x12\x10\n" +
 	"\x03tid\x18\x02 \x01(\x05R\x03tid\x12\x1b\n" +
@@ -246,14 +205,7 @@ const file_proto_renderer_proto_rawDesc = "" +
 	"\bnr_write\x18\b \x01(\x05R\anrWrite\x12\x19\n" +
 	"\bnr_fsync\x18\t \x01(\x05R\anrFsync\x12\x1a\n" +
 	"\bchecksum\x18\n" +
-	" \x01(\rR\bchecksum\x12\x18\n" +
-	"\apalette\x18\v \x01(\tR\apalette\x12\x12\n" +
-	"\x04wave\x18\f \x01(\x05R\x04wave\x12\x1e\n" +
-	"\n" +
-	"distortion\x18\r \x01(\x05R\n" +
-	"distortion\x12\x14\n" +
-	"\x05grain\x18\x0e \x01(\x05R\x05grain\x12\x16\n" +
-	"\x06border\x18\x0f \x01(\x05R\x06border\"A\n" +
+	" \x01(\rR\bchecksum\"A\n" +
 	"\x0eRenderResponse\x12\x19\n" +
 	"\bpng_data\x18\x01 \x01(\fR\apngData\x12\x14\n" +
 	"\x05error\x18\x02 \x01(\tR\x05error2T\n" +

@@ -45,11 +45,6 @@ func (r *RendererClient) render(ctx context.Context, meta events.MemMetadata) ([
 		NrWrite:    int32(meta.NRWrite),
 		NrFsync:    int32(meta.NRFsync),
 		Checksum:   meta.Checksum,
-		Palette:    "ink",
-		Wave:       6,
-		Distortion: 7,
-		Grain:      3,
-		Border:     18,
 	}
 
 	resp, err := r.client.RenderPoster(ctx, req)

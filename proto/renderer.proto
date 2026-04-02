@@ -19,11 +19,6 @@ message RenderRequest {
   int32  nr_write   = 8;
   int32  nr_fsync   = 9;
   uint32 checksum   = 10;
-  string palette    = 11;
-  int32  wave       = 12;
-  int32  distortion = 13;
-  int32  grain      = 14;
-  int32  border     = 15;
 }
 
 message RenderResponse {

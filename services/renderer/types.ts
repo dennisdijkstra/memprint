@@ -10,11 +10,6 @@ export interface RenderMeta {
   nr_write: number
   nr_fsync: number
   checksum: number
-  palette: string
-  wave: number
-  distortion: number
-  grain: number
-  border: number
 }
 
 export interface PaletteConfig {
