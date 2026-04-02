@@ -2,10 +2,11 @@
   "name": "memprint-renderer",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
-    "start": "node index.js",
-    "dev": "node --watch index.js"
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node index.ts"
   },
   "keywords": [],
   "author": "",
@@ -15,5 +16,10 @@
     "@grpc/grpc-js": "^1.14.3",
     "@grpc/proto-loader": "^0.8.0",
     "canvas": "^3.2.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.15",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
   }
 }
