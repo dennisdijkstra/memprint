@@ -125,7 +125,7 @@ export async function renderPoster(meta: RenderMeta): Promise<Buffer> {
   if (grainAmt > 0) applyGrain(ctx, b, grainAmt, random)
 
   // ── diagram ──
-  drawDiagram(ctx, meta, b, waveAmt, palette, noise)
+  // drawDiagram(ctx, meta, b, waveAmt, palette, noise)
 
   // ── typography ──
   await drawTypography(ctx, meta, b, distAmt, palette, noise, random, derive)
@@ -380,41 +380,62 @@ async function drawTypography(ctx: CanvasRenderingContext2D, meta: RenderMeta, b
   const acc = palette.accent ?? palette.ink
 
   const heapAddr = Number(meta.heap_addr)
-  const elements: TypographyElement[] = [
-    { text:`0x${(heapAddr >>> 0).toString(16).toUpperCase().padStart(8,'0')}`,
-      y:88*S+yo,  size:78*S, str:distAmt*3.2, ns:ns*0.8, seed:0.1, col:ink },
-    { text:`_${(((heapAddr>>>16)&0xFFFF)>>>0).toString(16).toUpperCase().padStart(4,'0')}_${((heapAddr&0xFFFF)>>>0).toString(16).toUpperCase().padStart(4,'0')}`,
-      y:148*S+yo, size:54*S, str:distAmt*2.6, ns:ns*0.9, seed:0.2, col:ink },
-    { text:`PID:${meta.pid}`,
-      y:210*S+yo, size:48*S, str:distAmt*3.8, ns:ns,     seed:0.3, col:ink },
-    { text:`TID:${meta.tid}`,
-      y:262*S+yo, size:40*S, str:distAmt*2.4, ns:ns*1.1, seed:0.4, col:acc },
-    { text:'HEAP',
-      y:348*S+yo, size:86*S, str:distAmt*5.5, ns:ns*0.7, seed:0.5, col:ink },
-    { text:`NR:${meta.nr_mmap}·MMAP`,
-      y:412*S+yo, size:38*S, str:distAmt*2.8, ns:ns,     seed:0.6, col:acc },
-    { text:`NR:${meta.nr_write}·WRITE`,
-      y:458*S+yo, size:36*S, str:distAmt*3.8, ns:ns*0.9, seed:0.7, col:ink },
-    { text:`NR:${meta.nr_fsync}·FSYNC`,
-      y:504*S+yo, size:34*S, str:distAmt*5.0, ns:ns*0.8, seed:0.8, col:acc },
-    { text:`G#${Math.round(derive(400)*9999)}·G#${Math.round(derive(401)*9999)}·G#${Math.round(derive(402)*9999)}`,
-      y:544*S+yo, size:26*S, str:distAmt*2.4, ns:ns,     seed:0.9, col:ink },
-    { text:`${meta.checksum.toString(16).toUpperCase().padStart(8,'0')}·${Math.round(Number(meta.heap_size)/1024)}KB`,
-      y:578*S+yo, size:19*S, str:distAmt*4.5, ns:ns*0.8, seed:1.0, col:ink },
-  ]
+
+  // seeded shuffle — Fisher-Yates using derive(), salt starts at 600
+  let salt = 600
+  function seededShuffle<T>(arr: T[]): T[] {
+    const a = [...arr]
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(derive(salt++) * (i + 1))
+      ;[a[i], a[j]] = [a[j], a[i]]
+    }
+    return a
+  }
+
+  // text content pool — shuffled independently of sizes
+  const texts = seededShuffle([
+    `0x${(heapAddr >>> 0).toString(16).toUpperCase().padStart(8,'0')}`,
+    `_${(((heapAddr>>>16)&0xFFFF)>>>0).toString(16).toUpperCase().padStart(4,'0')}_${((heapAddr&0xFFFF)>>>0).toString(16).toUpperCase().padStart(4,'0')}`,
+    `PID:${meta.pid}`,
+    `TID:${meta.tid}`,
+    'HEAP',
+    `NR:${meta.nr_mmap}·MMAP`,
+    `NR:${meta.nr_write}·WRITE`,
+    `NR:${meta.nr_fsync}·FSYNC`,
+    `G#${Math.round(derive(400)*9999)}·G#${Math.round(derive(401)*9999)}·G#${Math.round(derive(402)*9999)}`,
+    `${meta.checksum.toString(16).toUpperCase().padStart(8,'0')}·${Math.round(Number(meta.heap_size)/1024)}KB`,
+  ])
+
+  // size pool — shuffled independently so any text can be any size
+  const sizes = seededShuffle([86, 78, 54, 48, 40, 38, 36, 34, 26, 19])
+
+  // y-slots stay fixed — guarantees even page coverage regardless of shuffle
+  const ySlots = [88, 148, 210, 262, 348, 412, 458, 504, 544, 578]
+
+  const elements: TypographyElement[] = texts.map((text, i) => {
+    const baseSize = sizes[i]
+    return {
+      text,
+      y:    ySlots[i] * S + yo,
+      size: baseSize * S,
+      str:  distAmt * (2.0 + (baseSize / 86) * 3.5),
+      ns:   ns * (0.7 + derive(salt++) * 0.5),
+      seed: derive(salt++),
+      col:  derive(salt++) > 0.35 ? ink : acc,
+    }
+  })
 
   elements.forEach((el, i) => {
-    const yJitter = (derive(200 + i) - 0.5) * 16 * S
-    const sizeMul = 0.85 + derive(300 + i) * 0.30
-    displacedText(ctx, el.text, b+4*S, el.y + yJitter, el.size * sizeMul, el.str, el.ns, el.seed, el.col, noise)
+    const yJitter = (derive(200 + i) - 0.5) * 20 * S
+    displacedText(ctx, el.text, b+4*S, el.y + yJitter, el.size, el.str, el.ns, el.seed, el.col, noise)
   })
 
   // press line
-  for (let x = b; x < W-b; x++) {
-    const ny = noise.noise(x*(0.02/S), 888) * distAmt - distAmt*0.5
-    ctx.fillStyle = rgb(palette.ink, 0.12 + random(0, 0.05))
-    ctx.fillRect(x, 365*S+yo+ny, 1, 2)
-  }
+  // for (let x = b; x < W-b; x++) {
+  //   const ny = noise.noise(x*(0.02/S), 888) * distAmt - distAmt*0.5
+  //   ctx.fillStyle = rgb(palette.ink, 0.12 + random(0, 0.05))
+  //   ctx.fillRect(x, 365*S+yo+ny, 1, 2)
+  // }
 }
 
 function drawMetaStrips(
