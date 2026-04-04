@@ -82,6 +82,31 @@ func (r *RendererClient) render(ctx context.Context, meta events.MemMetadata) ([
 		return nil, fmt.Errorf("build render request: %w", err)
 	}
 
+	numGoroutines, err := toInt32("NumGoroutines", meta.NumGoroutines)
+	if err != nil {
+		return nil, fmt.Errorf("build render request: %w", err)
+	}
+
+	numCPU, err := toInt32("NumCPU", meta.NumCPU)
+	if err != nil {
+		return nil, fmt.Errorf("build render request: %w", err)
+	}
+
+	goMaxProcs, err := toInt32("GoMaxProcs", meta.GoMaxProcs)
+	if err != nil {
+		return nil, fmt.Errorf("build render request: %w", err)
+	}
+
+	pageSize, err := toInt32("PageSize", meta.PageSize)
+	if err != nil {
+		return nil, fmt.Errorf("build render request: %w", err)
+	}
+
+	filePages, err := toInt32("FilePages", meta.FilePages)
+	if err != nil {
+		return nil, fmt.Errorf("build render request: %w", err)
+	}
+
 	req := &rendererpb.RenderRequest{
 		Pid:      pid,
 		Tid:      tid,
@@ -93,6 +118,16 @@ func (r *RendererClient) render(ctx context.Context, meta events.MemMetadata) ([
 		NrWrite:  nrWrite,
 		NrFsync:  nrFsync,
 		Checksum: meta.Checksum,
+
+		NumGoroutines:  numGoroutines,
+		NumCpu:         numCPU,
+		GoMaxProcs:     goMaxProcs,
+		NumGc:          meta.NumGC,
+		GcPauseTotalNs: meta.GCPauseTotalNs,
+		PageSize:       pageSize,
+		FilePages:      filePages,
+		FileEntropy:    meta.FileEntropy,
+		MagicBytes:     meta.MagicBytes,
 	}
 
 	resp, err := r.client.RenderPoster(ctx, req)

@@ -44,6 +44,17 @@ type MemMetadata struct {
 	NRFsync     int    `json:"NRFsync"`
 	NROpenat    int    `json:"NROpenat"`
 	Checksum    uint32 `json:"checksum"`
+
+	NumGoroutines  int     `json:"num_goroutines"`
+	NumCPU         int     `json:"num_cpu"`
+	GoMaxProcs     int     `json:"go_max_procs"`
+	NumGC          uint32  `json:"num_gc"`
+	GCPauseTotalNs uint64  `json:"gc_pause_total_ns"`
+	PageSize       int     `json:"page_size"`
+	FilePages      int     `json:"file_pages"`
+	FileEntropy    float64 `json:"file_entropy"`
+	MagicBytes     string  `json:"magic_bytes"`
+
 	CapturedAt  string `json:"CapturedAt"`
 }
 

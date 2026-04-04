@@ -54,11 +54,19 @@ func (s *FileServer) UploadFile(ctx context.Context, req *filepb.UploadFileReque
 		INSERT INTO mem_metadata (
 			file_id, pid, tid, heap_addr, heap_size,
 			stack_offset, fd, nr_mmap, nr_write,
-			nr_fsync, nr_openat, captured_at
+			nr_fsync, nr_openat, captured_at,
+			num_goroutines, num_cpu, go_max_procs,
+			num_gc, gc_pause_total_ns,
+			page_size, file_pages,
+			file_entropy, magic_bytes
 		) VALUES (
 			$1, $2, $3, $4, $5,
 			$6, $7, $8, $9,
-			$10, $11, $12
+			$10, $11, $12,
+			$13, $14, $15,
+			$16, $17,
+			$18, $19,
+			$20, $21
 		)
 	`, fileID,
 		meta.PID, meta.TID,
@@ -67,6 +75,10 @@ func (s *FileServer) UploadFile(ctx context.Context, req *filepb.UploadFileReque
 		meta.NRMmap, meta.NRWrite,
 		meta.NRFsync, meta.NROpenat,
 		meta.CapturedAt,
+		meta.NumGoroutines, meta.NumCPU, meta.GoMaxProcs,
+		meta.NumGC, meta.GCPauseTotalNs,
+		meta.PageSize, meta.FilePages,
+		meta.FileEntropy, meta.MagicBytes,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("insert metadata: %w", err)

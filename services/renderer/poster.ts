@@ -3,9 +3,9 @@ import { RenderMeta, PaletteConfig, DiagramNode, SideNode, TypographyElement } f
 
 export { RenderMeta }
 
-const S = 2          // render scale factor — change to increase/decrease output resolution
-const W = 400 * S    // 800px
-const H = 600 * S    // 1200px
+const S = 2                                    // render scale factor — change to increase/decrease output resolution
+const H = 700 * S                              // 1400px
+const W = Math.round(H / Math.SQRT2 / S) * S  // A-series ratio (1:√2) → 990px
 
 // p5.js Perlin noise implementation (standalone, no browser needed)
 // ported from p5.js source
@@ -86,7 +86,9 @@ export async function renderPoster(meta: RenderMeta): Promise<Buffer> {
   const masterSeed = hashMix(
     meta.pid, meta.tid, Number(meta.heap_addr),
     meta.checksum, meta.fd,
-    meta.nr_openat, meta.nr_mmap, meta.nr_write, meta.nr_fsync
+    meta.nr_openat, meta.nr_mmap, meta.nr_write, meta.nr_fsync,
+    meta.num_goroutines, meta.num_cpu, meta.num_gc,
+    Math.round(meta.file_entropy * 1000), meta.page_size, meta.file_pages
   )
   function derive(salt: number): number {
     let n = (masterSeed ^ Math.imul(salt, 2654435761)) & 0xffffffff
@@ -127,6 +129,9 @@ export async function renderPoster(meta: RenderMeta): Promise<Buffer> {
 
   // ── typography ──
   await drawTypography(ctx, meta, b, distAmt, palette, noise, random, derive)
+
+  // ── low-level metadata strips ──
+  drawMetaStrips(ctx, meta, b, distAmt, palette, noise, derive)
 
   // ── border overlay ──
   ctx.fillStyle = rgb(palette.border)
@@ -410,6 +415,49 @@ async function drawTypography(ctx: CanvasRenderingContext2D, meta: RenderMeta, b
     ctx.fillStyle = rgb(palette.ink, 0.12 + random(0, 0.05))
     ctx.fillRect(x, 365*S+yo+ny, 1, 2)
   }
+}
+
+function drawMetaStrips(
+  ctx: CanvasRenderingContext2D,
+  meta: RenderMeta,
+  b: number,
+  distAmt: number,
+  palette: PaletteConfig,
+  noise: PerlinNoise,
+  derive: (salt: number) => number
+): void {
+  const yo     = b - 8 * S
+  const startY = 590 * S + yo
+  const rowH   = 28 * S
+  const ink    = palette.ink
+
+  const rows = [
+    { label: 'CPU TOPOLOGY', data: `CPU·${meta.num_cpu} · MAXPROCS·${meta.go_max_procs} · G·${meta.num_goroutines}`, seed: 1.10 },
+    { label: 'GC STATE',     data: `GC#${meta.num_gc} · PAUSE·${Number(meta.gc_pause_total_ns)}ns`,                  seed: 1.20 },
+    { label: 'MEMORY PAGING',data: `PAGE·${meta.page_size}B · PAGES·${meta.file_pages}`,                             seed: 1.30 },
+    { label: 'FILE ENTROPY', data: `ENTROPY·${meta.file_entropy.toFixed(2)}/8.00`,                                   seed: 1.40 },
+  ]
+
+  rows.forEach((row, i) => {
+    const y = startY + i * rowH
+    ctx.font      = `${5 * S}px monospace`
+    ctx.fillStyle = rgb(ink, 0.28)
+    ctx.textAlign = 'center'
+    ctx.fillText(row.label, W / 2, y - 4 * S)
+    displacedText(ctx, row.data, b + 4 * S, y + 14 * S, 16 * S, distAmt * 1.8, 0.013 / S, row.seed, ink, noise)
+  })
+
+  // separator before magic bytes
+  const sepY = startY + rows.length * rowH + 4 * S
+  ctx.strokeStyle = rgb(ink, 0.2)
+  ctx.lineWidth   = 0.5 * S
+  wavyLine(ctx, b + 10 * S, sepY, W - b - 10 * S, sepY, distAmt * 0.3, derive(500), noise)
+
+  // magic bytes — crisp monospace, no displacement
+  ctx.font      = `${9 * S}px monospace`
+  ctx.fillStyle = rgb(ink, 0.55)
+  ctx.textAlign = 'center'
+  ctx.fillText(meta.magic_bytes, W / 2, sepY + 16 * S)
 }
 
 function displacedText(ctx: CanvasRenderingContext2D, txt: string, x: number, y: number, size: number, strength: number, noiseScale: number, seedOffset: number, col: [number, number, number], noise: PerlinNoise): void {

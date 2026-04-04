@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v7.34.0
-// source: proto/renderer.proto
+// source: renderer.proto
 
 package renderer
 
@@ -22,24 +22,33 @@ const (
 )
 
 type RenderRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Pid           int32                  `protobuf:"varint,1,opt,name=pid,proto3" json:"pid,omitempty"`
-	Tid           int32                  `protobuf:"varint,2,opt,name=tid,proto3" json:"tid,omitempty"`
-	HeapAddr      uint64                 `protobuf:"varint,3,opt,name=heap_addr,json=heapAddr,proto3" json:"heap_addr,omitempty"`
-	HeapSize      uint64                 `protobuf:"varint,4,opt,name=heap_size,json=heapSize,proto3" json:"heap_size,omitempty"`
-	Fd            int32                  `protobuf:"varint,5,opt,name=fd,proto3" json:"fd,omitempty"`
-	NrOpenat      int32                  `protobuf:"varint,6,opt,name=nr_openat,json=nrOpenat,proto3" json:"nr_openat,omitempty"`
-	NrMmap        int32                  `protobuf:"varint,7,opt,name=nr_mmap,json=nrMmap,proto3" json:"nr_mmap,omitempty"`
-	NrWrite       int32                  `protobuf:"varint,8,opt,name=nr_write,json=nrWrite,proto3" json:"nr_write,omitempty"`
-	NrFsync       int32                  `protobuf:"varint,9,opt,name=nr_fsync,json=nrFsync,proto3" json:"nr_fsync,omitempty"`
-	Checksum      uint32                 `protobuf:"varint,10,opt,name=checksum,proto3" json:"checksum,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Pid            int32                  `protobuf:"varint,1,opt,name=pid,proto3" json:"pid,omitempty"`
+	Tid            int32                  `protobuf:"varint,2,opt,name=tid,proto3" json:"tid,omitempty"`
+	HeapAddr       uint64                 `protobuf:"varint,3,opt,name=heap_addr,json=heapAddr,proto3" json:"heap_addr,omitempty"`
+	HeapSize       uint64                 `protobuf:"varint,4,opt,name=heap_size,json=heapSize,proto3" json:"heap_size,omitempty"`
+	Fd             int32                  `protobuf:"varint,5,opt,name=fd,proto3" json:"fd,omitempty"`
+	NrOpenat       int32                  `protobuf:"varint,6,opt,name=nr_openat,json=nrOpenat,proto3" json:"nr_openat,omitempty"`
+	NrMmap         int32                  `protobuf:"varint,7,opt,name=nr_mmap,json=nrMmap,proto3" json:"nr_mmap,omitempty"`
+	NrWrite        int32                  `protobuf:"varint,8,opt,name=nr_write,json=nrWrite,proto3" json:"nr_write,omitempty"`
+	NrFsync        int32                  `protobuf:"varint,9,opt,name=nr_fsync,json=nrFsync,proto3" json:"nr_fsync,omitempty"`
+	Checksum       uint32                 `protobuf:"varint,10,opt,name=checksum,proto3" json:"checksum,omitempty"`
+	NumGoroutines  int32                  `protobuf:"varint,11,opt,name=num_goroutines,json=numGoroutines,proto3" json:"num_goroutines,omitempty"`
+	NumCpu         int32                  `protobuf:"varint,12,opt,name=num_cpu,json=numCpu,proto3" json:"num_cpu,omitempty"`
+	GoMaxProcs     int32                  `protobuf:"varint,13,opt,name=go_max_procs,json=goMaxProcs,proto3" json:"go_max_procs,omitempty"`
+	NumGc          uint32                 `protobuf:"varint,14,opt,name=num_gc,json=numGc,proto3" json:"num_gc,omitempty"`
+	GcPauseTotalNs uint64                 `protobuf:"varint,15,opt,name=gc_pause_total_ns,json=gcPauseTotalNs,proto3" json:"gc_pause_total_ns,omitempty"`
+	PageSize       int32                  `protobuf:"varint,16,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	FilePages      int32                  `protobuf:"varint,17,opt,name=file_pages,json=filePages,proto3" json:"file_pages,omitempty"`
+	FileEntropy    float64                `protobuf:"fixed64,18,opt,name=file_entropy,json=fileEntropy,proto3" json:"file_entropy,omitempty"`
+	MagicBytes     string                 `protobuf:"bytes,19,opt,name=magic_bytes,json=magicBytes,proto3" json:"magic_bytes,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *RenderRequest) Reset() {
 	*x = RenderRequest{}
-	mi := &file_proto_renderer_proto_msgTypes[0]
+	mi := &file_renderer_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -51,7 +60,7 @@ func (x *RenderRequest) String() string {
 func (*RenderRequest) ProtoMessage() {}
 
 func (x *RenderRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_renderer_proto_msgTypes[0]
+	mi := &file_renderer_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -64,7 +73,7 @@ func (x *RenderRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RenderRequest.ProtoReflect.Descriptor instead.
 func (*RenderRequest) Descriptor() ([]byte, []int) {
-	return file_proto_renderer_proto_rawDescGZIP(), []int{0}
+	return file_renderer_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *RenderRequest) GetPid() int32 {
@@ -137,6 +146,69 @@ func (x *RenderRequest) GetChecksum() uint32 {
 	return 0
 }
 
+func (x *RenderRequest) GetNumGoroutines() int32 {
+	if x != nil {
+		return x.NumGoroutines
+	}
+	return 0
+}
+
+func (x *RenderRequest) GetNumCpu() int32 {
+	if x != nil {
+		return x.NumCpu
+	}
+	return 0
+}
+
+func (x *RenderRequest) GetGoMaxProcs() int32 {
+	if x != nil {
+		return x.GoMaxProcs
+	}
+	return 0
+}
+
+func (x *RenderRequest) GetNumGc() uint32 {
+	if x != nil {
+		return x.NumGc
+	}
+	return 0
+}
+
+func (x *RenderRequest) GetGcPauseTotalNs() uint64 {
+	if x != nil {
+		return x.GcPauseTotalNs
+	}
+	return 0
+}
+
+func (x *RenderRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *RenderRequest) GetFilePages() int32 {
+	if x != nil {
+		return x.FilePages
+	}
+	return 0
+}
+
+func (x *RenderRequest) GetFileEntropy() float64 {
+	if x != nil {
+		return x.FileEntropy
+	}
+	return 0
+}
+
+func (x *RenderRequest) GetMagicBytes() string {
+	if x != nil {
+		return x.MagicBytes
+	}
+	return ""
+}
+
 type RenderResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	PngData       []byte                 `protobuf:"bytes,1,opt,name=png_data,json=pngData,proto3" json:"png_data,omitempty"`
@@ -147,7 +219,7 @@ type RenderResponse struct {
 
 func (x *RenderResponse) Reset() {
 	*x = RenderResponse{}
-	mi := &file_proto_renderer_proto_msgTypes[1]
+	mi := &file_renderer_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -159,7 +231,7 @@ func (x *RenderResponse) String() string {
 func (*RenderResponse) ProtoMessage() {}
 
 func (x *RenderResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_renderer_proto_msgTypes[1]
+	mi := &file_renderer_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -172,7 +244,7 @@ func (x *RenderResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RenderResponse.ProtoReflect.Descriptor instead.
 func (*RenderResponse) Descriptor() ([]byte, []int) {
-	return file_proto_renderer_proto_rawDescGZIP(), []int{1}
+	return file_renderer_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *RenderResponse) GetPngData() []byte {
@@ -189,11 +261,11 @@ func (x *RenderResponse) GetError() string {
 	return ""
 }
 
-var File_proto_renderer_proto protoreflect.FileDescriptor
+var File_renderer_proto protoreflect.FileDescriptor
 
-const file_proto_renderer_proto_rawDesc = "" +
+const file_renderer_proto_rawDesc = "" +
 	"\n" +
-	"\x14proto/renderer.proto\x12\brenderer\"\x85\x02\n" +
+	"\x0erenderer.proto\x12\brenderer\"\xa9\x04\n" +
 	"\rRenderRequest\x12\x10\n" +
 	"\x03pid\x18\x01 \x01(\x05R\x03pid\x12\x10\n" +
 	"\x03tid\x18\x02 \x01(\x05R\x03tid\x12\x1b\n" +
@@ -205,7 +277,19 @@ const file_proto_renderer_proto_rawDesc = "" +
 	"\bnr_write\x18\b \x01(\x05R\anrWrite\x12\x19\n" +
 	"\bnr_fsync\x18\t \x01(\x05R\anrFsync\x12\x1a\n" +
 	"\bchecksum\x18\n" +
-	" \x01(\rR\bchecksum\"A\n" +
+	" \x01(\rR\bchecksum\x12%\n" +
+	"\x0enum_goroutines\x18\v \x01(\x05R\rnumGoroutines\x12\x17\n" +
+	"\anum_cpu\x18\f \x01(\x05R\x06numCpu\x12 \n" +
+	"\fgo_max_procs\x18\r \x01(\x05R\n" +
+	"goMaxProcs\x12\x15\n" +
+	"\x06num_gc\x18\x0e \x01(\rR\x05numGc\x12)\n" +
+	"\x11gc_pause_total_ns\x18\x0f \x01(\x04R\x0egcPauseTotalNs\x12\x1b\n" +
+	"\tpage_size\x18\x10 \x01(\x05R\bpageSize\x12\x1d\n" +
+	"\n" +
+	"file_pages\x18\x11 \x01(\x05R\tfilePages\x12!\n" +
+	"\ffile_entropy\x18\x12 \x01(\x01R\vfileEntropy\x12\x1f\n" +
+	"\vmagic_bytes\x18\x13 \x01(\tR\n" +
+	"magicBytes\"A\n" +
 	"\x0eRenderResponse\x12\x19\n" +
 	"\bpng_data\x18\x01 \x01(\fR\apngData\x12\x14\n" +
 	"\x05error\x18\x02 \x01(\tR\x05error2T\n" +
@@ -213,23 +297,23 @@ const file_proto_renderer_proto_rawDesc = "" +
 	"\fRenderPoster\x12\x17.renderer.RenderRequest\x1a\x18.renderer.RenderResponseB3Z1github.com/dennisdijkstra/memprint/proto/rendererb\x06proto3"
 
 var (
-	file_proto_renderer_proto_rawDescOnce sync.Once
-	file_proto_renderer_proto_rawDescData []byte
+	file_renderer_proto_rawDescOnce sync.Once
+	file_renderer_proto_rawDescData []byte
 )
 
-func file_proto_renderer_proto_rawDescGZIP() []byte {
-	file_proto_renderer_proto_rawDescOnce.Do(func() {
-		file_proto_renderer_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_proto_renderer_proto_rawDesc), len(file_proto_renderer_proto_rawDesc)))
+func file_renderer_proto_rawDescGZIP() []byte {
+	file_renderer_proto_rawDescOnce.Do(func() {
+		file_renderer_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_renderer_proto_rawDesc), len(file_renderer_proto_rawDesc)))
 	})
-	return file_proto_renderer_proto_rawDescData
+	return file_renderer_proto_rawDescData
 }
 
-var file_proto_renderer_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
-var file_proto_renderer_proto_goTypes = []any{
+var file_renderer_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_renderer_proto_goTypes = []any{
 	(*RenderRequest)(nil),  // 0: renderer.RenderRequest
 	(*RenderResponse)(nil), // 1: renderer.RenderResponse
 }
-var file_proto_renderer_proto_depIdxs = []int32{
+var file_renderer_proto_depIdxs = []int32{
 	0, // 0: renderer.RendererService.RenderPoster:input_type -> renderer.RenderRequest
 	1, // 1: renderer.RendererService.RenderPoster:output_type -> renderer.RenderResponse
 	1, // [1:2] is the sub-list for method output_type
@@ -239,26 +323,26 @@ var file_proto_renderer_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for field type_name
 }
 
-func init() { file_proto_renderer_proto_init() }
-func file_proto_renderer_proto_init() {
-	if File_proto_renderer_proto != nil {
+func init() { file_renderer_proto_init() }
+func file_renderer_proto_init() {
+	if File_renderer_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_renderer_proto_rawDesc), len(file_proto_renderer_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_renderer_proto_rawDesc), len(file_renderer_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   2,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_proto_renderer_proto_goTypes,
-		DependencyIndexes: file_proto_renderer_proto_depIdxs,
-		MessageInfos:      file_proto_renderer_proto_msgTypes,
+		GoTypes:           file_renderer_proto_goTypes,
+		DependencyIndexes: file_renderer_proto_depIdxs,
+		MessageInfos:      file_renderer_proto_msgTypes,
 	}.Build()
-	File_proto_renderer_proto = out.File
-	file_proto_renderer_proto_goTypes = nil
-	file_proto_renderer_proto_depIdxs = nil
+	File_renderer_proto = out.File
+	file_renderer_proto_goTypes = nil
+	file_renderer_proto_depIdxs = nil
 }
