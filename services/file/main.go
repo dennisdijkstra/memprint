@@ -35,6 +35,11 @@ func main() {
 	defer db.Close()
 	log.Println("connnected to postgres")
 
+	if err := runMigrations(context.Background(), dbURL); err != nil {
+		log.Fatalf("run migrations: %v", err)
+	}
+	log.Println("migrations applied")
+
 	lis, err := net.Listen("tcp", ":"+port)
 	if err != nil {
 		log.Fatal("failed to listen: ", err)
