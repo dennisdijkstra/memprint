@@ -8,7 +8,7 @@ typographic poster. No two posters are the same.
 
 ## Tech Stack
 
-- Go
+- Go, Node.js (TypeScript)
 - gRPC + Protobuf
 - RabbitMQ
 - PostgreSQL
@@ -29,9 +29,10 @@ API Gateway (:8080)
                └── publishes → file.uploaded (RabbitMQ)
                                     │
                                     ▼
-                            Render Service
+                            Render Service (Go)
                                ├── builds layout from metadata
-                               ├── renders poster via gg canvas
+                               ├── calls → Node Renderer (:50053) gRPC
+                               │                └── renders poster via canvas
                                ├── uploads PNG to S3
                                └── publishes → poster.ready (RabbitMQ)
                                                     │
@@ -52,7 +53,8 @@ API Gateway (:8080)
 ├── services/
 │   ├── gateway/               # HTTP API gateway, rate limiting
 │   ├── file/                  # file upload, metadata capture
-│   ├── render/                # layout engine, poster rendering
+│   ├── render/                # layout engine, delegates rendering via gRPC
+│   ├── renderer/              # Node.js gRPC service, renders poster via canvas
 │   └── notifications/         # email delivery via Resend
 └── shared/
     └── events/                # shared queue names + event types
@@ -98,6 +100,7 @@ go run ./services/file/
 go run ./services/gateway/
 go run ./services/render/
 go run ./services/notifications/
+cd services/renderer && npm run dev
 ```
 
 Test the gRPC endpoint directly with grpcurl:
