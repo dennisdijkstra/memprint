@@ -55,7 +55,7 @@ type MemMetadata struct {
 	FileEntropy    float64 `json:"file_entropy"`
 	MagicBytes     string  `json:"magic_bytes"`
 
-	CapturedAt  string `json:"CapturedAt"`
+	CapturedAt string `json:"CapturedAt"`
 }
 
 func (m MemMetadata) String() string {
