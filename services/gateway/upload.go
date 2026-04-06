@@ -17,8 +17,10 @@ func (gw *Gateway) handleUpload(w http.ResponseWriter, r *http.Request) {
 
 	isAllowed, err := gw.rateLimiter.isAllowed(ctx, userID)
 	if err != nil {
-		log.Printf("rate limiter error: %v", err)
-	} else if !isAllowed {
+		http.Error(w, "service unavailable", http.StatusServiceUnavailable)
+		return
+	}
+	if !isAllowed {
 		http.Error(w, "rate limit exceeded — max 10 uploads per minute", http.StatusTooManyRequests)
 		return
 	}
